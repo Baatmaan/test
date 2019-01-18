@@ -1,24 +1,35 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore;
+﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using RestApplication.Models;
+
 
 namespace RestApplication
 {
-    public class Program
+    public static class Program
     {
         public static void Main(string[] args)
         {
-            CreateWebHostBuilder(args).Build().Run();
+            CreateWebHostBuilder(args)
+                .Build()
+                .InitDatabase()
+                .Run();
+        }
+
+        public static IWebHost InitDatabase(this IWebHost host)
+        {
+            using (var scope = host.Services.CreateScope())
+            {
+                var dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();
+                dataContext.Database.Migrate();
+            }
+            return host;
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>();
+
     }
 }

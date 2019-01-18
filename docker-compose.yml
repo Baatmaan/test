@@ -1,8 +1,42 @@
 version: '3.4'
 
 services:
+  db:
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pwd123
+    volumes:
+      - /var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    container_name: db 
+  
+  pgadmin:
+    image: fenglc/pgadmin4
+    volumes:
+      - /data
+    links:
+      - db:postgres
+    ports:
+      - 5051:5050
+
+  rabbitmq:
+    image: rabbitmq:3
+    ports:
+      - "5672:5672"
+    container_name: rabbitmq   
+  
   restapplication:
     image: ${DOCKER_REGISTRY}restapplication
     build:
       context: .
       dockerfile: RestApplication/Dockerfile
+    container_name: restapplication
+
+  listenerapplication:
+    image: ${DOCKER_REGISTRY}listenerapplication
+    build:
+      context: .
+      dockerfile: ListenerApplication/Dockerfile
+    container_name: listenerapplication
