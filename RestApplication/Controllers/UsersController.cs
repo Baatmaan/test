@@ -100,17 +100,14 @@ namespace RestApplication.Controllers
             {
                 using (var channel = connection.CreateModel())
                 {
-                    channel.QueueDeclare(queue: "rest",
-                                    durable: false,
-                                    exclusive: false,
-                                    autoDelete: false,
-                                    arguments: null);
-
-                    string message = "UserCreated";
+                    string message = "User created with ID: " + user.Id + " Name: " + user.Name + " Email: " + user.Email;
+                   
+                    channel.ExchangeDeclare(exchange: "user",
+                                    type: "topic");
+                    
                     var body = Encoding.UTF8.GetBytes(message);
-
-                    channel.BasicPublish(exchange: "",
-                                         routingKey: "rest",
+                    channel.BasicPublish(exchange: "user",
+                                         routingKey: "user.created",
                                          basicProperties: null,
                                          body: body);
                 }

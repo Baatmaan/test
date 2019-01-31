@@ -29,16 +29,30 @@ namespace ListenerApplication.Services
 
         public void Register()
         {
-            channel.QueueDeclare(queue: "rest", durable: false, exclusive: false, autoDelete: false, arguments: null);
+            channel.ExchangeDeclare(exchange: "user", type: "topic");
+            var queueName = channel.QueueDeclare().QueueName;
+
+            channel.QueueBind(queue: queueName,
+                                exchange: "user",
+                                routingKey: "user.created");
+
+            Console.WriteLine(" [*] Waiting for messages. To exit press CTRL+C");
 
             var consumer = new EventingBasicConsumer(channel);
             consumer.Received += (model, ea) =>
             {
                 var body = ea.Body;
                 var message = Encoding.UTF8.GetString(body);
-                _logger.LogDebug(message);
+                var routingKey = ea.RoutingKey;
+                
+                Console.WriteLine(" [x] Received '{0}':'{1}'",
+                                  routingKey,
+                                  message);
             };
-            channel.BasicConsume(queue: "rest", autoAck: true, consumer: consumer);
+
+            channel.BasicConsume(queue: queueName,
+                                 autoAck: true,
+                                 consumer: consumer);
         }
 
         public void Deregister()
